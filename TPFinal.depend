@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1510762535 source:d:\esgi\sécurité informatique\project_1\tpfinal\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+	"prototypes.h"
+
+1510744734 d:\esgi\sécurité informatique\project_1\tpfinal\prototypes.h
+
+1510744758 source:d:\esgi\sécurité informatique\project_1\tpfinal\prototypes.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+	"prototypes.h"
+
