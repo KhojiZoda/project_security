@@ -95,18 +95,21 @@ int main(int argc, char** argv){
   and save the matrix inside a char array
 
   **********************************************************/
-/*
+
   char character;
   FILE *matrix_file;
-  char matrix[32];
+  char matrix[4][8];
   int matrix_length=0;
+  int matrix_tab=0;
   matrix_file = fopen("key.txt", "r");
   while ((character = getc(matrix_file)) != EOF){
-  if (character == '1' || character == '0') {
-    matrix[matrix_length] = character;
-    matrix_length++;
+    if (character == '1' || character == '0') {
+      matrix[matrix_tab][matrix_length]=character;
+      matrix_length++;
+      if (matrix_tab>4 && matrix_tab%4==0) {
+        matrix_tab++;
+      }
     }
   }
-  */
   return 0;
 }
