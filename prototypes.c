@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <pthread.h>
 #include "prototypes.h"
 
 /*
@@ -32,8 +36,17 @@ This method might be quicker to convert char to binary
 
 ***************************************************************/
 
-void getCharInBinary(char *output, int c){
-    int result[8] = {0};
+void getCharInBinary(char *output, char c){
+    int result[8]; // Line declaration is 1.7 quicker than a loop
+    result[0] = 0;
+    result[1] = 0;
+    result[2] = 0;
+    result[3] = 0;
+    result[4] = 0;
+    result[5] = 0;
+    result[6] = 0;
+    result[7] = 0;
+
     if(c >= 128){
         result[0] = 1;
         c -= 128;
@@ -66,8 +79,100 @@ void getCharInBinary(char *output, int c){
         result[7] = 1;
         c -= 1;
     }
-    getEncodedBinary(output, result);
+        getEncodedBinary(output, result);
 }
+
+void returnCharInBinary(int *result, char c){
+    // Line declaration is 1.7 quicker than a loop
+    result[0] = 0;
+    result[1] = 0;
+    result[2] = 0;
+    result[3] = 0;
+    result[4] = 0;
+    result[5] = 0;
+    result[6] = 0;
+    result[7] = 0;
+
+    if(c >= 128){
+        result[0] = 1;
+        c -= 128;
+    }
+    if(c >= 64){
+        result[1] = 1;
+        c -= 64;
+    }
+    if(c >= 32){
+        result[2] = 1;
+        c -= 32;
+    }
+    if(c >= 16){
+        result[3] = 1;
+        c -= 16;
+    }
+    if(c >= 8){
+        result[4] = 1;
+        c -= 8;
+    }
+    if(c >= 4){
+        result[5] = 1;
+        c -= 4;
+    }
+    if(c >= 2){
+        result[6] = 1;
+        c -= 2;
+    }
+    if(c >= 1){
+        result[7] = 1;
+        c -= 1;
+    }
+}
+
+unsigned long file_to_string(char* filename, char** buffer)
+{
+    FILE* pointer_file;
+    unsigned long filesize;
+    unsigned long off_end;
+    int rc;
+    /*
+     * Open the file
+     */
+    pointer_file = fopen(filename, "rb");
+    if (NULL == pointer_file) {
+        return 0;
+    }
+    /*
+     * Get filesize
+     */
+    rc = fseek(pointer_file, 0L, SEEK_END);
+    if (0 != rc) {
+        return 0;
+    }
+    if (0 > (off_end = ftell(pointer_file))) {
+        return 0;
+    }
+    filesize = off_end;
+    /*
+     * Allocate a buffer to hold the whole file
+     */
+    *buffer = calloc(filesize, sizeof(char));
+    if (NULL == *buffer) {
+        return 0;
+    }
+    rewind(pointer_file);
+    /*
+     * Store file into buffer
+     */
+    if (filesize != fread(*buffer, 1, filesize, pointer_file)) {
+        free(*buffer);
+        return 0;
+    }
+    if (EOF == fclose(pointer_file)) {
+        free(*buffer);
+        return 0;
+    }
+    return filesize;
+}
+
 
 /*
 *   Get any binary number transformed in HexaDecimal.
@@ -86,75 +191,161 @@ void getEncodedBinary(char *output, int *binaryArray){
     */
 
 
-    char encoded[16];
-    int i,j;
-    int h=0;
-    int k =0;
+    output[0] = 0;
+    output[1] = 0;
+    int i;
     int result;
-    for(h=0;h<8;h=h+4){
-        for(i=0;i<8;i++){
+
+    /* 1.4740s With small matrice after deleting 2 loop that took too many ressources. Better duplicate for high speed.
+    *   Deleting 2 loops + 3 creation of variables made us win 1s on a 10Mo file. From 2.34s to 1.47s.
+    * Speed ratio without loop : 1.7x quicker than with a loop.
+    */
+
+    for(i=0;i<8;i++){
             result = 0;
-            for(j=0;j<4;j++){
-                result += binaryArray[j+h] * matrice[j][i];
+            result += binaryArray[0] * matrice[0][i];
+            result += binaryArray[1] * matrice[1][i];
+            result += binaryArray[2] * matrice[2][i];
+            result += binaryArray[3] * matrice[3][i];
+
+            if(result %2 == 1){
+                switch(i){
+                    case 0:
+                        output[0] += 128;
+                        break;
+                    case 1:
+                        output[0] += 64;
+                        break;
+                    case 2:
+                        output[0] += 32;
+                        break;
+                    case 3:
+                        output[0] += 16;
+                        break;
+                    case 4:
+                        output[0] += 8;
+                        break;
+                    case 5:
+                        output[0] += 4;
+                        break;
+                    case 6:
+                        output[0] += 2;
+                        break;
+                    case 7:
+                        output[0] += 1;
+                        break;
+                }
             }
-            if(result %2 == 0){
-                result = 0;
-            }else{
-                result = 1;
+
+            result = 0;
+
+            result += binaryArray[4] * matrice[0][i];
+            result += binaryArray[5] * matrice[1][i];
+            result += binaryArray[6] * matrice[2][i];
+            result += binaryArray[7] * matrice[3][i];
+
+            if(result %2 == 1){
+                switch(i){
+                    case 0:
+                        output[1] += 128;
+                        break;
+                    case 1:
+                        output[1] += 64;
+                        break;
+                    case 2:
+                        output[1] += 32;
+                        break;
+                    case 3:
+                        output[1] += 16;
+                        break;
+                    case 4:
+                        output[1] += 8;
+                        break;
+                    case 5:
+                        output[1] += 4;
+                        break;
+                    case 6:
+                        output[1] += 2;
+                        break;
+                    case 7:
+                        output[1] += 1;
+                        break;
+                }
             }
-            encoded[k]=result;
-            k++;
         }
+}
+
+void getDecodedBinary(unsigned char *output, int *arrayOne, int *arrayTwo){
+    output = 0;
+    if(arrayOne[0] == 1){
+        output +=128;
     }
-
-    // This declaration is quicker than doing a loop. Ratio speed : 1.7
-
-    output[0] = binaryToHexa(encoded[0],encoded[1],encoded[2],encoded[3]);
-    output[1] = binaryToHexa(encoded[4],encoded[5],encoded[6],encoded[7]);
-    output[2] = binaryToHexa(encoded[8],encoded[9],encoded[10],encoded[11]);
-    output[3] = binaryToHexa(encoded[12],encoded[13],encoded[14],encoded[15]);
+    if(arrayOne[1] == 1){
+        output +=64;
+    }
+    if(arrayOne[2] == 1){
+        output +=32;
+    }
+    if(arrayOne[3] == 1){
+        output +=16;
+    }
+    if(arrayTwo[0] == 1){
+        output +=8;
+    }
+    if(arrayTwo[1] == 1){
+        output +=4;
+    }
+    if(arrayTwo[2] == 1){
+        output +=2;
+    }
+    if(arrayTwo[3] == 1){
+        output +=1;
+    }
 }
 
 
-/*
-*   Return a char in HexaDecimal depending on the sequence in binary.
-*   Switch quicker but not possible. If/else if is quicker than just doing some if.
-*   Ratio speed : 1.3
-*/
-char binaryToHexa(int x1, int x2, int x3, int x4){
-    if(x1 == 0 && x2 == 0 && x3 == 0 && x4 == 0)
-        return '0';
-    else if(x1 == 0 && x2 == 0 && x3 == 0 && x4 == 1)
-        return '1';
-    else if(x1 == 0 && x2 == 0 && x3 == 1 && x4 == 0)
-        return '2';
-    else if(x1 == 0 && x2 == 0 && x3 == 1 && x4 == 1)
-        return '3';
-    else if(x1 == 0 && x2 == 1 && x3 == 0 && x4 == 0)
-        return '4';
-    else if(x1 == 0 && x2 == 1 && x3 == 0 && x4 == 1)
-        return '5';
-    else if(x1 == 0 && x2 == 1 && x3 == 1 && x4 == 0)
-        return '6';
-    else if(x1 == 0 && x2 == 1 && x3 == 1 && x4 == 1)
-        return '7';
-    else if(x1 == 1 && x2 == 0 && x3 == 0 && x4 == 0)
-        return '8';
-    else if(x1 == 1 && x2 == 0 && x3 == 0 && x4 == 1)
-        return '9';
-    else if(x1 == 1 && x2 == 0 && x3 == 1 && x4 == 0)
-        return 'A';
-    else if(x1 == 1 && x2 == 0 && x3 == 1 && x4 == 1)
-        return 'B';
-    else if(x1 == 1 && x2 == 1 && x3 == 0 && x4 == 0)
-        return 'C';
-    else if(x1 == 1 && x2 == 1 && x3 == 0 && x4 == 1)
-        return 'D';
-    else if(x1 == 1 && x2 == 1 && x3 == 1 && x4 == 0)
-        return 'E';
-    else if(x1 == 1 && x2 == 1 && x3 == 1 && x4 == 1)
-        return 'F';
-    return '\0';
+void* thread_work(void* structure){
+    thread_args* args = structure;
+    char output[2];
+    long i;
+    int j;
+    for(j=0;j<NUM_THREADS;j++){
+        if(pthread_equal(pthread_self(), args->thread_id[j])){
+            for(i=0;i<args->filesize; i++){
+                if(i%NUM_THREADS == j){
+                    getCharInBinary(output, args->buffer[i]);
+                    args->buffer_encryption[(i*2)] = output[0];
+                    args->buffer_encryption[(i*2)+1] = output[1];
+                }
+            }
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void* thread_decode(void *structure){
+    thread_args* args = structure;
+    char output;
+    int arrayOne[8];
+    int arrayTwo[8];
+    long i;
+    int j;
+    long l=0;
+    int h;
+    for(j=0;j<NUM_THREADS;j++){
+        if(pthread_equal(pthread_self(), args->thread_id[j])){
+            for(i=0;i<args->filesize; i=i+2){
+                if(i%NUM_THREADS == j){
+                    returnCharInBinary(arrayOne, args->buffer[i]);
+                    returnCharInBinary(arrayTwo, args->buffer[i+1]);
+                    getDecodedBinary(output, arrayOne, arrayTwo);
+                    args->buffer_encryption[l] = output;
+                    l++;
+                }
+            }
+        }
+    }
+    pthread_exit(NULL);
 }
 
 void HexaToBinary(int *input, char hexa){
