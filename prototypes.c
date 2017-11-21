@@ -1,5 +1,3 @@
-#pragma once
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +34,7 @@ This method might be quicker to convert char to binary
 
 ***************************************************************/
 
-void getCharInBinary(char *output, char c){
+void getCharInBinary(unsigned char *output, unsigned char c){
     int result[8]; // Line declaration is 1.7 quicker than a loop
     result[0] = 0;
     result[1] = 0;
@@ -82,7 +80,7 @@ void getCharInBinary(char *output, char c){
         getEncodedBinary(output, result);
 }
 
-void returnCharInBinary(int *result, char c){
+void returnCharInBinary(int *result, unsigned char c){
     // Line declaration is 1.7 quicker than a loop
     result[0] = 0;
     result[1] = 0;
@@ -127,7 +125,7 @@ void returnCharInBinary(int *result, char c){
     }
 }
 
-unsigned long file_to_string(char* filename, char** buffer)
+unsigned long file_to_string(char* filename, unsigned char** buffer)
 {
     FILE* pointer_file;
     unsigned long filesize;
@@ -178,7 +176,7 @@ unsigned long file_to_string(char* filename, char** buffer)
 *   Get any binary number transformed in HexaDecimal.
 */
 
-void getEncodedBinary(char *output, int *binaryArray){
+void getEncodedBinary(unsigned char *output, int *binaryArray){
     int matrice[4][8]={{1,0,0,0,1,1,1,0},{0,1,0,0,1,1,1,1},{0,0,1,0,0,1,1,1},{0,0,0,1,0,0,1,0}};
 
     /* MATRICE
@@ -275,8 +273,8 @@ void getEncodedBinary(char *output, int *binaryArray){
         }
 }
 
-void getDecodedBinary(unsigned char *output, int *arrayOne, int *arrayTwo){
-    output = 0;
+char getDecodedBinary(int *arrayOne, int *arrayTwo){
+    unsigned char output = 0;
     if(arrayOne[0] == 1){
         output +=128;
     }
@@ -301,184 +299,52 @@ void getDecodedBinary(unsigned char *output, int *arrayOne, int *arrayTwo){
     if(arrayTwo[3] == 1){
         output +=1;
     }
+    return output;
 }
 
 
 void* thread_work(void* structure){
     thread_args* args = structure;
-    char output[2];
+    int thread = -1;
+    unsigned char output[2];
     long i;
     int j;
     for(j=0;j<NUM_THREADS;j++){
         if(pthread_equal(pthread_self(), args->thread_id[j])){
-            for(i=0;i<args->filesize; i++){
-                if(i%NUM_THREADS == j){
-                    getCharInBinary(output, args->buffer[i]);
-                    args->buffer_encryption[(i*2)] = output[0];
-                    args->buffer_encryption[(i*2)+1] = output[1];
-                }
-            }
+            thread = j;
         }
     }
+
+
+    if (thread < 0) { exit(30); }
+	for (i = thread; i < args->filesize; i += NUM_THREADS) {
+		getCharInBinary(output, args->buffer[i]);
+        args->buffer_encryption[(i*2)] = output[0];
+        args->buffer_encryption[(i*2)+1] = output[1];
+	}
     pthread_exit(NULL);
+
 }
 
 void* thread_decode(void *structure){
     thread_args* args = structure;
-    char output;
+    int thread = -1;
+    unsigned char output;
     int arrayOne[8];
     int arrayTwo[8];
-    long i;
+    unsigned long i;
     int j;
-    long l=0;
-    int h;
     for(j=0;j<NUM_THREADS;j++){
         if(pthread_equal(pthread_self(), args->thread_id[j])){
-            for(i=0;i<args->filesize; i=i+2){
-                if(i%NUM_THREADS == j){
-                    returnCharInBinary(arrayOne, args->buffer[i]);
-                    returnCharInBinary(arrayTwo, args->buffer[i+1]);
-                    getDecodedBinary(output, arrayOne, arrayTwo);
-                    args->buffer_encryption[l] = output;
-                    l++;
-                }
-            }
+            thread = j;
         }
     }
+    if (thread < 0) { exit(30); }
+    for(i = thread; i < args->filesize; i += NUM_THREADS) {
+        returnCharInBinary(arrayOne, args->buffer[i*2]);
+        returnCharInBinary(arrayTwo, args->buffer[(i*2)+1]);
+        output = getDecodedBinary(arrayOne, arrayTwo);
+        args->buffer_encryption[i] = output;
+    }
     pthread_exit(NULL);
-}
-
-void HexaToBinary(int *input, char hexa){
-    input[0] = 0;
-    input[1] = 0;
-    input[2] = 0;
-    input[3] = 0;
-
-    switch(hexa){
-        case '0':
-            input[0] = 0;
-            input[1] = 0;
-            input[2] = 0;
-            input[3] = 0;
-            break;
-        case '1':
-            input[0] = 0;
-            input[1] = 0;
-            input[2] = 0;
-            input[3] = 1;
-            break;
-        case '2':
-            input[0] = 0;
-            input[1] = 0;
-            input[2] = 1;
-            input[3] = 0;
-            break;
-        case '3':
-            input[0] = 0;
-            input[1] = 0;
-            input[2] = 1;
-            input[3] = 1;
-            break;
-        case '4':
-            input[0] = 0;
-            input[1] = 1;
-            input[2] = 0;
-            input[3] = 0;
-            break;
-        case '5':
-            input[0] = 0;
-            input[1] = 1;
-            input[2] = 0;
-            input[3] = 1;
-            break;
-        case '6':
-            input[0] = 0;
-            input[1] = 1;
-            input[2] = 1;
-            input[3] = 0;
-            break;
-        case '7':
-            input[0] = 0;
-            input[1] = 1;
-            input[2] = 1;
-            input[3] = 1;
-            break;
-        case '8':
-            input[0] = 1;
-            input[1] = 0;
-            input[2] = 0;
-            input[3] = 0;
-            break;
-        case '9':
-            input[0] = 1;
-            input[1] = 0;
-            input[2] = 0;
-            input[3] = 1;
-            break;
-        case 'A':
-            input[0] = 1;
-            input[1] = 0;
-            input[2] = 1;
-            input[3] = 0;
-            break;
-        case 'B':
-            input[0] = 1;
-            input[1] = 0;
-            input[2] = 1;
-            input[3] = 1;
-            break;
-        case 'C':
-            input[0] = 1;
-            input[1] = 1;
-            input[2] = 0;
-            input[3] = 0;
-            break;
-        case 'D':
-            input[0] = 1;
-            input[1] = 1;
-            input[2] = 0;
-            input[3] = 1;
-            break;
-        case 'E':
-            input[0] = 1;
-            input[1] = 1;
-            input[2] = 1;
-            input[3] = 0;
-            break;
-        case 'F':
-            input[0] = 1;
-            input[1] = 1;
-            input[2] = 1;
-            input[3] = 1;
-            break;
-    }
-}
-
-int binaryToChar(int *binaryArray){
-    int charFound = 0;
-    if(binaryArray[0] == 1){
-        charFound += 128;
-    }
-    if(binaryArray[1] == 1){
-        charFound += 64;
-    }
-    if(binaryArray[2] == 1){
-        charFound += 32;
-    }
-    if(binaryArray[3] == 1){
-        charFound += 16;
-    }
-    if(binaryArray[4] == 1){
-        charFound += 8;
-    }
-    if(binaryArray[5] == 1){
-        charFound += 4;
-    }
-    if(binaryArray[6] == 1){
-        charFound += 2;
-    }
-    if(binaryArray[7] == 1){
-        charFound += 1;
-    }
-    return charFound;
 }

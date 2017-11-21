@@ -6,21 +6,19 @@
 #include <pthread.h>
 #include <math.h>
 
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 
 typedef struct thread_args {
 	pthread_t thread_id[NUM_THREADS];
-	char*     buffer;
-	char*     buffer_encryption;
-	unsigned long      filesize;
+	unsigned char*     buffer;
+	unsigned char*     buffer_encryption;
+	long      filesize;
 } thread_args;
 
 void* thread_work(void* structure);
 void* thread_decode(void* structure);
-void getCharInBinary(char *ouput, char c);
-void returnCharInBinary(int *result, char c);
-void getEncodedBinary(char *output, int *binaryArray);
-void getDecodedBinary(unsigned char *output, int *arrayOne, int *arrayTwo);
-void HexaToBinary(int *input, char hexa);
-int binaryToChar(int *binaryArray);
-unsigned long file_to_string(char* filename, char **buffer);
+void getCharInBinary(unsigned char *ouput, unsigned char c);
+void returnCharInBinary(int *result,unsigned char c);
+void getEncodedBinary(unsigned char *output, int *binaryArray);
+char getDecodedBinary(int *arrayOne, int *arrayTwo);
+unsigned long file_to_string(char* filename, unsigned char **buffer);
