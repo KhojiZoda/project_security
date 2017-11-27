@@ -1,12 +1,10 @@
-#pragma once
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <math.h>
 
-#define NUM_THREADS 1
+#define NUM_THREADS 4
 
 typedef struct thread_args {
 	pthread_t thread_id[NUM_THREADS];
@@ -14,6 +12,13 @@ typedef struct thread_args {
 	unsigned char*     buffer_encryption;
 	long      filesize;
 } thread_args;
+
+typedef struct thread_args2 {
+	pthread_t thread_id[NUM_THREADS];
+	unsigned char*     buffer;
+	unsigned char*     buffer_decryption;
+	long      filesize;
+} thread_args2;
 
 void* thread_work(void* structure);
 void* thread_decode(void* structure);
