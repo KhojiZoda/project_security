@@ -151,24 +151,23 @@ int main(int argc, char** argv){
 
   **********************************************************/
 
-  char character;
-  FILE *matrix_file;
-  int matrix[4][8];
-  int int_char,i,j;
-  int matrix_length=0;
-  int matrix_tab=0;
+    char character;
+    FILE *matrix_file;
+    int matrix[4][8];
+    int int_char,i,j;
+    int matrix_length=0;
+    int matrix_tab=0;
 
-  matrix_file = fopen("key.txt", "r");
-  while ((character = getc(matrix_file)) != EOF){
-    if (character == '1' || character == '0') {
-      int_char = character-48;
-      matrix[matrix_tab][matrix_length] = int_char;
-      matrix_length++;
-      if (matrix_length>=8) {
-        matrix_length=0;
-        matrix_tab++;
+    matrix_file = fopen("key.txt", "r");
+    while ((character = getc(matrix_file)) != EOF){
+      if (character == '1' || character == '0') {
+        int_char = character-48;
+        matrix[matrix_tab][matrix_length] = int_char;
+        matrix_length++;
+        if (matrix_length>=8) {
+          matrix_length=0;
+          matrix_tab++;
+        }
       }
     }
-  }
-  return 0;
-}
+    return 0
