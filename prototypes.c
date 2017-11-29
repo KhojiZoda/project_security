@@ -14,26 +14,6 @@
 *   Ratio speed : 1.7
 */
 
-/***************************************************************
-
-This method might be quicker to convert char to binary
-
-// const char *byte_to_binary(int x)
-// {
-//     static char b[9];
-//     b[0] = '\0';
-//
-//     int z;
-//     for (z = 128; z > 0; z >>= 1)
-//     {
-//         strcat(b, ((x & z) == z) ? "1" : "0");
-//     }
-//
-//     return b;
-// }
-
-***************************************************************/
-
 void getCharInBinary(unsigned char *output, unsigned char c){
     int result[8]; // Line declaration is 1.7 quicker than a loop
     result[0] = 0;
@@ -188,7 +168,6 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
     *
     */
 
-
     output[0] = 0;
     output[1] = 0;
     int i;
@@ -314,11 +293,9 @@ void* thread_work(void* structure){
             thread = j;
         }
     }
-
-
     if (thread < 0) { exit(30); }
 	for (i = thread; i < args->filesize; i += NUM_THREADS) {
-		getCharInBinary(output, args->buffer[i]);
+        getCharInBinary(output, args->buffer[i]);
         args->buffer_encryption[(i*2)] = output[0];
         args->buffer_encryption[(i*2)+1] = output[1];
 	}
@@ -327,7 +304,7 @@ void* thread_work(void* structure){
 }
 
 void* thread_decode(void *structure){
-    thread_args* args = structure;
+    thread_args2* args2 = structure;
     int thread = -1;
     unsigned char output;
     int arrayOne[8];
@@ -335,16 +312,17 @@ void* thread_decode(void *structure){
     unsigned long i;
     int j;
     for(j=0;j<NUM_THREADS;j++){
-        if(pthread_equal(pthread_self(), args->thread_id[j])){
+        if(pthread_equal(pthread_self(), args2->thread_id[j])){
             thread = j;
         }
     }
     if (thread < 0) { exit(30); }
-    for(i = thread; i < args->filesize; i += NUM_THREADS) {
-        returnCharInBinary(arrayOne, args->buffer[i*2]);
-        returnCharInBinary(arrayTwo, args->buffer[(i*2)+1]);
-        output = getDecodedBinary(arrayOne, arrayTwo);
-        args->buffer_encryption[i] = output;
+    for(i = thread; i < args2->filesize; i += NUM_THREADS) {
+            returnCharInBinary(arrayOne, args2->buffer[i*2]);
+            returnCharInBinary(arrayTwo, args2->buffer[(i*2)+1]);
+            output = getDecodedBinary(arrayOne, arrayTwo);
+            args2->buffer_decryption[i] = output;
+
     }
     pthread_exit(NULL);
 }
