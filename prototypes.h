@@ -1,3 +1,13 @@
+/*
+*   Security Project
+*   Name of the Project : CODEC 2A1
+*   Made by : DELMER Pierre & ABDULLAZODA Khojiakbar
+*   Date : 29/11/2017
+*   Class : 2A1
+*   Course : Security
+*   File : Header of our functions file
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
