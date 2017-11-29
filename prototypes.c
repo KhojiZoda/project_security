@@ -1,3 +1,13 @@
+/*
+*   Security Project
+*   Name of the Project : CODEC 2A1
+*   Made by : DELMER Pierre & ABDULLAZODA Khojiakbar
+*   Date : 29/11/2017
+*   Class : 2A1
+*   Course : Security
+*   File : Functions file
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,7 +170,7 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
     char character;
     FILE *matrix_file;
     int matrice[4][8];
-    int int_char,i,j;
+    int int_char,i;
     int matrix_length=0;
     int matrix_tab=0;
 
@@ -189,7 +199,6 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
 
     output[0] = 0;
     output[1] = 0;
-    int i;
     int result;
 
     /* 1.4740s With small matrice after deleting 2 loop that took too many ressources. Better duplicate for high speed.
