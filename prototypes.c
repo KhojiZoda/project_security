@@ -24,7 +24,7 @@
 *   Ratio speed : 1.7
 */
 
-void getCharInBinary(unsigned char *output, unsigned char c){
+void getCharInBinary(unsigned char *output, unsigned char c, void *args){
     int result[8]; // Line declaration is 1.7 quicker than a loop
     result[0] = 0;
     result[1] = 0;
@@ -67,7 +67,7 @@ void getCharInBinary(unsigned char *output, unsigned char c){
         result[7] = 1;
         c -= 1;
     }
-        getEncodedBinary(output, result);
+        getEncodedBinary(output, result, args);
 }
 
 void returnCharInBinary(int *result, unsigned char c){
@@ -166,39 +166,9 @@ unsigned long file_to_string(char* filename, unsigned char** buffer)
 *   Get any binary number transformed in HexaDecimal.
 */
 
-void getEncodedBinary(unsigned char *output, int *binaryArray){
-
-    char character;
-    FILE *matrix_file;
-    int matrice[4][8];
-    int int_char,i;
-    int matrix_length=0;
-    int matrix_tab=0;
-
-    matrix_file = fopen("key2.txt", "r");
-    while ((character = getc(matrix_file)) != EOF){
-      if (character == '1' || character == '0') {
-        int_char = character-48;
-        matrice[matrix_tab][matrix_length] = int_char;
-        matrix_length++;
-        if (matrix_length>=8) {
-          matrix_length=0;
-          matrix_tab++;
-        }
-      }
-    }
-    fclose(matrix_file);
-    // int matrice[4][8]={{1,0,0,0,1,1,1,0},{0,1,0,0,1,1,1,1},{0,0,1,0,0,1,1,1},{0,0,0,1,0,0,1,0}};
-
-    /* MATRICE
-    *
-    *   1000 | 1110 [0][0-7]
-    *   0100 | 1111 [1][0-7]
-    *   0010 | 0111 [2][0-7]
-    *   0001 | 0010 [3][0-7]
-    *
-    */
-
+void getEncodedBinary(unsigned char *output, int *binaryArray, void* structure){
+    thread_args* args = structure;
+    int i;
     output[0] = 0;
     output[1] = 0;
     int result;
@@ -210,10 +180,10 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
 
     for(i=0;i<8;i++){
             result = 0;
-            result += binaryArray[0] * matrice[0][i];
-            result += binaryArray[1] * matrice[1][i];
-            result += binaryArray[2] * matrice[2][i];
-            result += binaryArray[3] * matrice[3][i];
+            result += binaryArray[0] * args->matrice[0][i];
+            result += binaryArray[1] * args->matrice[1][i];
+            result += binaryArray[2] * args->matrice[2][i];
+            result += binaryArray[3] * args->matrice[3][i];
 
             if(result %2 == 1){
                 switch(i){
@@ -246,10 +216,10 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
 
             result = 0;
 
-            result += binaryArray[4] * matrice[0][i];
-            result += binaryArray[5] * matrice[1][i];
-            result += binaryArray[6] * matrice[2][i];
-            result += binaryArray[7] * matrice[3][i];
+            result += binaryArray[4] * args->matrice[0][i];
+            result += binaryArray[5] * args->matrice[1][i];
+            result += binaryArray[6] * args->matrice[2][i];
+            result += binaryArray[7] * args->matrice[3][i];
 
             if(result %2 == 1){
                 switch(i){
@@ -311,6 +281,7 @@ char getDecodedBinary(int *arrayOne, int *arrayTwo, int *identity){
     return output;
 }
 
+// THREAD FUNCTION TO ENCODE
 
 void* thread_work(void* structure){
     thread_args* args = structure;
@@ -325,35 +296,10 @@ void* thread_work(void* structure){
     }
     if (thread < 0) { exit(30); }
 	for (i = thread; i < args->filesize; i += NUM_THREADS) {
-        getCharInBinary(output, args->buffer[i]);
+        getCharInBinary(output, args->buffer[i], args);
         args->buffer_encryption[(i*2)] = output[0];
         args->buffer_encryption[(i*2)+1] = output[1];
 	}
     pthread_exit(NULL);
-
-}
-
-void* thread_decode(void *structure){
-    thread_args2* args2 = structure;
-    int thread = -1;
-    unsigned char output;
-    int arrayOne[8];
-    int arrayTwo[8];
-    int identity[4];
-    unsigned long i;
-    int j;
-    for(j=0;j<NUM_THREADS;j++){
-        if(pthread_equal(pthread_self(), args2->thread_id[j])){
-            thread = j;
-        }
-    }
-    if (thread < 0) { exit(30); }
-    for(i = thread; i < args2->filesize; i += NUM_THREADS) {
-            returnCharInBinary(arrayOne, args2->buffer[i*2]);
-            returnCharInBinary(arrayTwo, args2->buffer[(i*2)+1]);
-            output = getDecodedBinary(arrayOne, arrayTwo, identity);
-            args2->buffer_decryption[i] = output;
-
-    }
-    pthread_exit(NULL);
+    return 0;
 }
