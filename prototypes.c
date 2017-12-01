@@ -167,6 +167,7 @@ unsigned long file_to_string(char* filename, unsigned char** buffer)
 */
 
 void getEncodedBinary(unsigned char *output, int *binaryArray){
+
     char character;
     FILE *matrix_file;
     int matrice[4][8];
@@ -174,7 +175,7 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
     int matrix_length=0;
     int matrix_tab=0;
 
-    matrix_file = fopen("key.txt", "r");
+    matrix_file = fopen("key2.txt", "r");
     while ((character = getc(matrix_file)) != EOF){
       if (character == '1' || character == '0') {
         int_char = character-48;
@@ -186,6 +187,7 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
         }
       }
     }
+    fclose(matrix_file);
     // int matrice[4][8]={{1,0,0,0,1,1,1,0},{0,1,0,0,1,1,1,1},{0,0,1,0,0,1,1,1},{0,0,0,1,0,0,1,0}};
 
     /* MATRICE
@@ -280,30 +282,30 @@ void getEncodedBinary(unsigned char *output, int *binaryArray){
         }
 }
 
-char getDecodedBinary(int *arrayOne, int *arrayTwo){
+char getDecodedBinary(int *arrayOne, int *arrayTwo, int *identity){
     unsigned char output = 0;
-    if(arrayOne[0] == 1){
+    if(arrayOne[identity[0]] == 1){
         output +=128;
     }
-    if(arrayOne[1] == 1){
+    if(arrayOne[identity[1]] == 1){
         output +=64;
     }
-    if(arrayOne[2] == 1){
+    if(arrayOne[identity[2]] == 1){
         output +=32;
     }
-    if(arrayOne[3] == 1){
+    if(arrayOne[identity[3]] == 1){
         output +=16;
     }
-    if(arrayTwo[0] == 1){
+    if(arrayTwo[identity[0]] == 1){
         output +=8;
     }
-    if(arrayTwo[1] == 1){
+    if(arrayTwo[identity[1]] == 1){
         output +=4;
     }
-    if(arrayTwo[2] == 1){
+    if(arrayTwo[identity[2]] == 1){
         output +=2;
     }
-    if(arrayTwo[3] == 1){
+    if(arrayTwo[identity[3]] == 1){
         output +=1;
     }
     return output;
@@ -337,6 +339,7 @@ void* thread_decode(void *structure){
     unsigned char output;
     int arrayOne[8];
     int arrayTwo[8];
+    int identity[4];
     unsigned long i;
     int j;
     for(j=0;j<NUM_THREADS;j++){
@@ -348,7 +351,7 @@ void* thread_decode(void *structure){
     for(i = thread; i < args2->filesize; i += NUM_THREADS) {
             returnCharInBinary(arrayOne, args2->buffer[i*2]);
             returnCharInBinary(arrayTwo, args2->buffer[(i*2)+1]);
-            output = getDecodedBinary(arrayOne, arrayTwo);
+            output = getDecodedBinary(arrayOne, arrayTwo, identity);
             args2->buffer_decryption[i] = output;
 
     }

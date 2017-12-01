@@ -35,5 +35,5 @@ void* thread_decode(void* structure);
 void getCharInBinary(unsigned char *ouput, unsigned char c);
 void returnCharInBinary(int *result,unsigned char c);
 void getEncodedBinary(unsigned char *output, int *binaryArray);
-char getDecodedBinary(int *arrayOne, int *arrayTwo);
+char getDecodedBinary(int *arrayOne, int *arrayTwo, int *identity);
 unsigned long file_to_string(char* filename, unsigned char **buffer);

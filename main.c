@@ -1,7 +1,7 @@
 /*
 *   Security Project
 *   Name of the Project : CODEC 2A1
-*   Made by : DELMER Pierre & ABDULLAZODA Khojiakbar
+*   Made by : DELMER Pierre and ABDULLAZODA Khojiakbar
 *   Date : 29/11/2017
 *   Class : 2A1
 *   Course : Security
@@ -15,7 +15,6 @@
 #include <ctype.h>
 #include <math.h>
 #include <pthread.h>
-#include <stdbool.h>
 #include "prototypes.h"
 
 int main(int argc, char** argv){
@@ -30,12 +29,13 @@ int main(int argc, char** argv){
     unsigned char output;
     int arrayOne[8];
     int arrayTwo[8];
+    int *identity;
     FILE *encode;
     FILE *decode;
     long filesize;
     unsigned long i;
     int err;
-
+    identity = calloc(4, sizeof(int));
     filename = "test.txt";
     filesize = file_to_string(filename, &buffer);
     if(!filesize){
@@ -48,6 +48,40 @@ int main(int argc, char** argv){
         return -1;
     }
 
+    char character;
+    FILE *matrix_file;
+    int matrice[4][8];
+    int int_char, j;
+    int matrix_length=0;
+    int matrix_tab=0;
+
+    matrix_file = fopen("key2.txt", "r");
+    while ((character = getc(matrix_file)) != EOF){
+      if (character == '1' || character == '0') {
+        int_char = character-48;
+        matrice[matrix_tab][matrix_length] = int_char;
+        matrix_length++;
+        if (matrix_length>=8) {
+          matrix_length=0;
+          matrix_tab++;
+        }
+      }
+    }
+    fclose(matrix_file);
+    for(j=0;j<8;j++){
+        if(matrice[0][j] == 1 && matrice[1][j] == 0 && matrice[2][j] == 0 && matrice[3][j] == 0 ){
+            identity[0] = j;
+        }
+        if(matrice[0][j] == 0 && matrice[1][j] == 1 && matrice[2][j] == 0 && matrice[3][j] == 0 ){
+            identity[1] = j;
+        }
+        if(matrice[0][j] == 0 && matrice[1][j] == 0 && matrice[2][j] == 1 && matrice[3][j] == 0 ){
+            identity[2] = j;
+        }
+        if(matrice[0][j] == 0 && matrice[1][j] == 0 && matrice[2][j] == 0 && matrice[3][j] == 1 ){
+            identity[3] = j;
+        }
+    }
     thread_args args;
     args.buffer = buffer;
     args.buffer_encryption = buffer_encryption;
@@ -83,7 +117,7 @@ int main(int argc, char** argv){
     */
 
 
-    filenameDecode = "test.txtc";
+    filenameDecode = "IN-BB.mp4c";
     filesize = file_to_string(filenameDecode, &buffer2);
     if(!filesize){
         printf("\n\n** Filesize equal to 0 ! Error **");
@@ -100,11 +134,11 @@ int main(int argc, char** argv){
     for(i=0;i<filesize;i=i+2){
         returnCharInBinary(arrayOne, buffer2[i]);
         returnCharInBinary(arrayTwo, buffer2[i+1]);
-        output = getDecodedBinary(arrayOne, arrayTwo);
+        output = getDecodedBinary(arrayOne, arrayTwo, identity);
         buffer_decryption[h] = output;
         h++;
     }
-    decode = fopen("test.txtd","wb");
+    decode = fopen("video.mp4","wb");
     fwrite(buffer_decryption, sizeof(char), filesize/2, decode);
     t4 = clock();
     time2 = (float)(t4-t3)/CLOCKS_PER_SEC;           // GET TIME
