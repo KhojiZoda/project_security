@@ -34,6 +34,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="prototypes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="prototypes.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
